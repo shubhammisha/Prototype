@@ -1,0 +1,25 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Configuration & Environment
+pydantic
+pydantic-settings
+python-dotenv
+
+# Document Processing
+pypdf
+
+# Vector Database & Embeddings
+qdrant-client
+groq
+# openai (optional backup)
+
+
+# Tokenization
+tiktoken
+
+# Utilities
+httpx
+tenacity

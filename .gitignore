@@ -1,0 +1,20 @@
+# Environment variables
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Data
+qdrant_data/
+uploads/
+
+# IDE settings
+.vscode/
+.idea/
+.DS_Store
