@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException, Depends
+from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, BackgroundTasks
 from app.schemas.document import DocumentResponse
 from app.services.document.loader import PDFLoader
 from app.services.document.chunker import DocumentChunker
@@ -23,12 +23,13 @@ def get_chunker():
 
 @router.post("/ingest", response_model=DocumentResponse)
 async def ingest_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     loader: PDFLoader = Depends(get_loader),
     retrieval: RetrievalService = Depends(get_retrieval_service)
 ):
     try:
-        # 1. Save temp file
+        # 1. Save temp file synchronously (fast)
         file_location = settings.UPLOAD_DIR / file.filename
         file_location.parent.mkdir(parents=True, exist_ok=True)
         
@@ -37,26 +38,50 @@ async def ingest_document(
             
         logger.info(f"Saved file to {file_location}")
 
-        # 2. Load Documents (Text + Metadata)
-        documents = loader.load(file_location)
-        if not documents:
-            raise HTTPException(status_code=400, detail="Could not extract text from PDF")
+        # 2. Add heavy processing to background task
+        background_tasks.add_task(
+            process_upload_background, 
+            file_path=file_location, 
+            filename=file.filename,
+            loader=loader, 
+            retrieval=retrieval
+        )
+        
+        return DocumentResponse(
+            id=file.filename,
+            message=f"File {file.filename} received. Processing started in background (this may take a minute for large files)."
+        )
 
-        # 3. Index Documents (Chunking handled by service)
+    except Exception as e:
+        logger.error(f"Ingestion setup error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def process_upload_background(file_path: str, filename: str, loader: PDFLoader, retrieval: RetrievalService):
+    """
+    Heavy lifting function to be run in background.
+    """
+    try:
+        logger.info(f"Background: Starting processing for {filename}...")
+        
+        # 2. Load Documents
+        documents = loader.load(file_path)
+        if not documents:
+            logger.error(f"Background: Could not extract text from {filename}")
+            return
+
+        # 3. Index Documents
         texts = [doc.text for doc in documents]
         metas = [doc.metadata for doc in documents]
         
         retrieval.index_documents(texts, metas)
         
-        return DocumentResponse(
-            id=file.filename,
-            message=f"Successfully ingested {len(documents)} pages from {file.filename} (chunked internally)"
-        )
-
+        logger.info(f"Background: Successfully finished processing {filename}")
+        
     except Exception as e:
-        logger.error(f"Ingestion error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Background processing failed for {filename}: {e}")
     finally:
-        # Cleanup temp file? Optional. Keeping for debug for now.
+        # Optional cleanup
+        # if os.path.exists(file_path):
+        #     os.remove(file_path)
         pass
 
