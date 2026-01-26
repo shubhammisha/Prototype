@@ -3,8 +3,20 @@ import requests
 import os
 
 # Config
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api/v1")
-CHECK_URL = os.getenv("CHECK_URL", "http://127.0.0.1:8000/health")
+# Config
+# Try to get from st.secrets first (Streamlit Cloud), then os.getenv (Docker/Render), then default (Localhost)
+try:
+    API_URL = st.secrets["API_URL"]
+except:
+    API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api/v1")
+
+try:
+    CHECK_URL = st.secrets["CHECK_URL"]
+except:
+    CHECK_URL = os.getenv("CHECK_URL", "http://127.0.0.1:8000/health")
+
+# Ensure API_URL doesn't have a trailing slash which might break appending endpoints
+API_URL = API_URL.rstrip("/")
 
 
 st.set_page_config(page_title="RAG Chatbot", page_icon="🤖", layout="wide")
