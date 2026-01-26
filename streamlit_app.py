@@ -22,6 +22,8 @@ API_URL = API_URL.rstrip("/")
 st.set_page_config(page_title="RAG Chatbot", page_icon="🤖", layout="wide")
 
 st.title("🤖 Government-Grade RAG Assistant")
+st.write(f"**DEBUG INFO:** API_URL is set to: `{API_URL}`") # Remove this after fixing
+
 
 # Sidebar for Ingestion
 with st.sidebar:
