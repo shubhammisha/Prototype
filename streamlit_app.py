@@ -59,9 +59,9 @@ with st.sidebar:
 # Check Backend Status
 try:
     if requests.get(CHECK_URL).status_code != 200:
-        st.warning("Backend seems unstable.")
-except:
-    st.error("Cannot connect to backend (http://localhost:8000). Is it running?")
+        st.warning(f"Backend seems unstable. Checked: {CHECK_URL}")
+except Exception as e:
+    st.error(f"Cannot connect to backend at **{CHECK_URL}**. Is it running? Error: {e}")
 
 # Chat Interface
 if "messages" not in st.session_state:
