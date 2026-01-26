@@ -1,3 +1,4 @@
+from typing import Optional, Union
 from pathlib import Path
 from pydantic import AnyHttpUrl, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,7 +25,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: Path = BASE_DIR / "uploads"
 
     # LLM (Required)
-    OPENAI_API_KEY: str | None = None
+    OPENAI_API_KEY: Optional[str] = None
     GROQ_API_KEY: str # Required for Groq
     
     LLM_MODEL: str = "llama-3.3-70b-versatile"
@@ -35,8 +36,8 @@ class Settings(BaseSettings):
 
     # Vector DB
     # Allows HTTP URL or local path string
-    VECTOR_DB_URL: str | AnyHttpUrl = "http://localhost:6333" 
-    VECTOR_DB_API_KEY: str | None = None
+    VECTOR_DB_URL: Union[str, AnyHttpUrl] = "http://localhost:6333" 
+    VECTOR_DB_API_KEY: Optional[str] = None
 
     VECTOR_COLLECTION_NAME: str = "documents"
 

@@ -25,7 +25,6 @@ def get_chunker():
 async def ingest_document(
     file: UploadFile = File(...),
     loader: PDFLoader = Depends(get_loader),
-    chunker: DocumentChunker = Depends(get_chunker),
     retrieval: RetrievalService = Depends(get_retrieval_service)
 ):
     try:
@@ -43,19 +42,15 @@ async def ingest_document(
         if not documents:
             raise HTTPException(status_code=400, detail="Could not extract text from PDF")
 
-        # 3. Chunk Documents
-        chunks = chunker.chunk(documents)
-        logger.info(f"Created {len(chunks)} chunks from {file.filename}")
-
-        # 4. Index Chunks
-        texts = [chunk.text for chunk in chunks]
-        metas = [chunk.metadata for chunk in chunks]
+        # 3. Index Documents (Chunking handled by service)
+        texts = [doc.text for doc in documents]
+        metas = [doc.metadata for doc in documents]
         
         retrieval.index_documents(texts, metas)
         
         return DocumentResponse(
             id=file.filename,
-            message=f"Successfully ingested {len(chunks)} chunks from {file.filename}"
+            message=f"Successfully ingested {len(documents)} pages from {file.filename} (chunked internally)"
         )
 
     except Exception as e:

@@ -32,11 +32,20 @@ class QdrantVectorStore:
     def ensure_collection(self, vector_size: int = 768):
         """
         Create collection if it doesn't exist.
-        Default 768 is for nomic-embed-text-v1.5.
+        If it exists but has wrong vector size, delete and recreate.
         """
         collections = self.client.get_collections()
         exists = any(c.name == self.collection_name for c in collections.collections)
         
+        if exists:
+            # Check config
+            collection_info = self.client.get_collection(self.collection_name)
+            current_size = collection_info.config.params.vectors.size
+            if current_size != vector_size:
+                logger.warning(f"Collection {self.collection_name} exists but has wrong size {current_size} != {vector_size}. Recreating...")
+                self.client.delete_collection(self.collection_name)
+                exists = False
+
         if not exists:
             self.client.create_collection(
                 collection_name=self.collection_name,

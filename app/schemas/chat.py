@@ -1,16 +1,17 @@
+from typing import Optional, Union, List
 from pydantic import BaseModel
 
 class ChatRequest(BaseModel):
     query: str
-    history: list[dict] | None = None
+    history: Optional[List[dict]] = None
 
 class SourceSnippet(BaseModel):
     text: str
     source: str
-    page: int | str
+    page: Union[int, str]
 
 class ChatResponse(BaseModel):
     answer: str
-    sources: list[SourceSnippet]
+    sources: List[SourceSnippet]
     confidence: str = "Medium"
 

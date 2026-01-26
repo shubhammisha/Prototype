@@ -1,6 +1,7 @@
 import re
+from typing import Union
 from pathlib import Path
-from pypdf import PdfReader
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,19 +11,10 @@ class PDFLoader:
     Service for loading and cleaning text from PDF files.
     """
     
-    def load(self, file_path: str | Path) -> list:
+    def load(self, file_path: Union[str, Path]) -> list:
         """
         Load a PDF file and return list of Documents with metadata.
-        
-        Args:
-            file_path: Path to the PDF file.
-            
-        Returns:
-            Cleaned text str.
-            
-        Raises:
-            FileNotFoundError: If file does not exist.
-            ValueError: If file is not a PDF or unreadable.
+        Tries to use PyMuPDF (fitz) for speed, falls back to pypdf.
         """
         path = Path(file_path)
         if not path.exists():
@@ -31,27 +23,60 @@ class PDFLoader:
         if path.suffix.lower() != ".pdf":
             raise ValueError(f"File {file_path} is not a PDF.")
 
+        documents = []
+        from app.schemas.document import Document
+
+        # METHOD 1: Try PyMuPDF (Fast)
         try:
-            reader = PdfReader(str(path))
-            documents = []
+            import fitz  # PyMuPDF
+            doc = fitz.open(str(path))
+            logger.info(f"Using PyMuPDF to load {path.name}")
             
-            from app.schemas.document import Document
+            for i, page in enumerate(doc):
+                try:
+                    text = page.get_text()
+                    if text:
+                        cleaned_page_text = self._clean_text(text, page_num=i+1)
+                        if cleaned_page_text:
+                            documents.append(Document(
+                                text=cleaned_page_text,
+                                metadata={"page": i+1, "source": path.name}
+                            ))
+                except Exception as e:
+                    logger.warning(f"Failed to extract text from page {i+1} of {path.name}: {e}")
+                    continue
+            doc.close()
+            return documents
+            
+        except ImportError:
+            logger.warning("PyMuPDF (fitz) not found. Falling back to pypdf (slower).")
+        except Exception as e:
+            logger.error(f"PyMuPDF failed: {e}. Falling back to pypdf.")
+
+        # METHOD 2: Fallback to pypdf (Slow but reliable if installed)
+        try:
+            from pypdf import PdfReader
+            logger.info(f"Using pypdf to load {path.name}")
+            reader = PdfReader(str(path))
             
             for i, page in enumerate(reader.pages):
-                text = page.extract_text()
-                if text:
-                    cleaned_page_text = self._clean_text(text, page_num=i+1)
-                    if cleaned_page_text:
-                        documents.append(Document(
-                            text=cleaned_page_text,
-                            metadata={"page": i+1, "source": path.name}
-                        ))
-            
+                try:
+                    text = page.extract_text()
+                    if text:
+                        cleaned_page_text = self._clean_text(text, page_num=i+1)
+                        if cleaned_page_text:
+                            documents.append(Document(
+                                text=cleaned_page_text,
+                                metadata={"page": i+1, "source": path.name}
+                            ))
+                except Exception as e:
+                    logger.warning(f"Failed to extract text from page {i+1} of {path.name}: {e}")
+                    continue
             return documents
             
         except Exception as e:
-            logger.error(f"Error reading PDF {file_path}: {e}")
-            raise ValueError(f"Failed to read PDF: {e}")
+            logger.error(f"Error reading PDF {file_path} with pypdf: {e}")
+            raise ValueError(f"Failed to read PDF: {e}. Ensure 'pymupdf' or 'pypdf' is installed.")
 
     def _clean_text(self, text: str, page_num: int = 0) -> str:
         """

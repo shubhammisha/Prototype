@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.api.v1.router import api_router
 from app.services.vector.store import QdrantVectorStore
+from app.services.vector.embeddings import get_embedding_service
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -13,6 +14,11 @@ async def lifespan(app: FastAPI):
         # For now, hardcoding 768 as per previous plan to ensure it's set.
         store.ensure_collection(vector_size=768)
         print(f"Startup: Verified collection '{settings.VECTOR_COLLECTION_NAME}' exists.")
+        
+        # Pre-load embedding model
+        print("Startup: Pre-loading embedding model...")
+        get_embedding_service()
+        print("Startup: Embedding model loaded.")
     except Exception as e:
         print(f"Startup Warning: Could not verify vector store: {e}")
     

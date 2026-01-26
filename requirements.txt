@@ -2,6 +2,7 @@
 fastapi
 uvicorn[standard]
 python-multipart
+streamlit
 
 # Configuration & Environment
 pydantic
@@ -9,12 +10,13 @@ pydantic-settings
 python-dotenv
 
 # Document Processing
-pypdf
+pymupdf
+fastembed
 
 # Vector Database & Embeddings
 qdrant-client
 groq
-# openai (optional backup)
+openai
 
 
 # Tokenization

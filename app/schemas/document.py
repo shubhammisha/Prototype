@@ -1,8 +1,9 @@
+from typing import Optional, Union
 from pydantic import BaseModel
 
 class DocumentIngestRequest(BaseModel):
     text: str
-    metadata: dict | None = None
+    metadata: Optional[dict] = None
 
 class Document(BaseModel):
     text: str
