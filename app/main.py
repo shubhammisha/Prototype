@@ -12,7 +12,7 @@ async def lifespan(app: FastAPI):
         store = QdrantVectorStore()
         # Default text-v1.5 is 768 dims. Ideally read from config or dynamic.
         # For now, hardcoding 768 as per previous plan to ensure it's set.
-        store.ensure_collection(vector_size=768)
+        store.ensure_collection(vector_size=384)
         print(f"Startup: Verified collection '{settings.VECTOR_COLLECTION_NAME}' exists.")
         
         # Pre-load embedding model
