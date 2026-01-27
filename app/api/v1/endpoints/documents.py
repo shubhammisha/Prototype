@@ -7,6 +7,7 @@ from app.core.config import settings
 import shutil
 import os
 import logging
+import asyncio
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -39,9 +40,10 @@ async def ingest_document(
         logger.info(f"Saved file to {file_location}")
 
         # 2. Add heavy processing to background task
+        # We pass the FILE PATH as a string so it's serializable and safe
         background_tasks.add_task(
             process_upload_background, 
-            file_path=file_location, 
+            file_path=str(file_location), 
             filename=file.filename,
             loader=loader, 
             retrieval=retrieval
@@ -56,32 +58,51 @@ async def ingest_document(
         logger.error(f"Ingestion setup error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-def process_upload_background(file_path: str, filename: str, loader: PDFLoader, retrieval: RetrievalService):
+async def process_upload_background(file_path: str, filename: str, loader: PDFLoader, retrieval: RetrievalService):
     """
-    Heavy lifting function to be run in background.
+    Heavy lifting function run in background with ASYNC to prevent blocking.
     """
     try:
         logger.info(f"Background: Starting processing for {filename}...")
         
-        # 2. Load Documents
-        documents = loader.load(file_path)
+        # 2. Load Documents (Heavy cpu) -> Offload to thread
+        documents = await asyncio.to_thread(loader.load, file_path)
         if not documents:
             logger.error(f"Background: Could not extract text from {filename}")
             return
 
-        # 3. Index Documents
+        # 3. Index Documents (Heavy cpu/network)
+        # We process in smaller batches to avoid OOM or Timeouts
         texts = [doc.text for doc in documents]
         metas = [doc.metadata for doc in documents]
         
-        retrieval.index_documents(texts, metas)
+        # Split into batches of 20
+        batch_size = 20
+        total_batches = (len(texts) + batch_size - 1) // batch_size
+        
+        logger.info(f"Background: Extracted {len(texts)} chunks. Processing in {total_batches} batches...")
+        
+        for i in range(0, len(texts), batch_size):
+            batch_texts = texts[i:i + batch_size]
+            batch_metas = metas[i:i + batch_size]
+            
+            # Offload indexing to thread to keep loop responsive
+            await asyncio.to_thread(retrieval.index_documents, batch_texts, batch_metas)
+            
+            # Tiny sleep to let other requests pass (heartbeats, etc.)
+            await asyncio.sleep(0.1)
+            
+            logger.info(f"Background: Processed batch {i//batch_size + 1}/{total_batches} for {filename}")
         
         logger.info(f"Background: Successfully finished processing {filename}")
         
     except Exception as e:
         logger.error(f"Background processing failed for {filename}: {e}")
     finally:
-        # Optional cleanup
-        # if os.path.exists(file_path):
-        #     os.remove(file_path)
-        pass
+        # Cleanup
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            logger.warning(f"Could not delete temp file {file_path}: {e}")
 
