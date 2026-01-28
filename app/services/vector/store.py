@@ -56,18 +56,31 @@ class QdrantVectorStore:
             )
             logger.info(f"Created collection {self.collection_name} with size {vector_size}")
             
-        # Ensure payload index exists (safe to call multiple times or catch error)
-        try:
-            self.client.create_payload_index(
+        if exists:
+            # Check if payload index exists significantly reduces API overhead
+            try:
+                # Get collection info again (or reuse if optimal) - here reusing
+                collection_info = self.client.get_collection(self.collection_name)
+                # payload_schema is a dict like {'source': PayloadSchemaInfo(...)}
+                if "source" not in collection_info.payload_schema:
+                     logger.info("Index for 'source' missing. Creating...")
+                     self.client.create_payload_index(
+                        collection_name=self.collection_name,
+                        field_name="source",
+                        field_schema=models.PayloadSchemaType.KEYWORD
+                     )
+                     logger.info("Created keyword index for 'source' field")
+            except Exception as e:
+                 logger.error(f"Failed to check/create index: {e}") 
+
+        # If not exists, we created it above, so we should create index too
+        if not exists:
+             self.client.create_payload_index(
                 collection_name=self.collection_name,
                 field_name="source",
                 field_schema=models.PayloadSchemaType.KEYWORD
-            )
-            logger.info("Verified/Created keyword index for 'source' field")
-        except Exception as e:
-            # Depending on client version, this might raise if exists or other issues.
-            # Usually idempotent, but safelisting just in case.
-            logger.info(f"Index creation note: {e}")
+             )
+             logger.info("Created keyword index for 'source' field (new collection)")
 
     def upsert(self, embeddings: List[VectorEmbedding]):
         if not embeddings:
