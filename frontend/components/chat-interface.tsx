@@ -12,10 +12,16 @@ interface ChatInterfaceProps {
     onReset: () => void
 }
 
+interface Source {
+    text: string
+    source: string
+    page: number
+}
+
 interface Message {
     role: "user" | "assistant"
     content: string
-    sources?: { text: string; source: string; page: number }[]
+    sources?: Source[]
 }
 
 const suggestedQuestions = [
@@ -45,7 +51,7 @@ export function ChatInterface({ filename, onReset }: ChatInterfaceProps) {
         }
     }, [])
 
-    const handleSubmit = async (e: React.FormEvent, questionOverride?: string) => {
+    const handleSubmit = async (e: React.FormEvent | null, questionOverride?: string) => {
         e?.preventDefault()
         const query = questionOverride || input
         if (!query.trim() || loading) return
@@ -144,7 +150,7 @@ export function ChatInterface({ filename, onReset }: ChatInterfaceProps) {
                                     animate={{ opacity: 1, y: 0 }}
                                     className="text-slate-800 text-lg font-medium mb-8"
                                 >
-                                    I've analyzed <span className="font-bold">{filename}</span>. Ask me anything about its contents!
+                                    I&apos;ve analyzed <span className="font-bold">{filename}</span>. Ask me anything about its contents!
                                 </motion.div>
 
                                 <div className="flex flex-wrap justify-center gap-3">
@@ -154,7 +160,7 @@ export function ChatInterface({ filename, onReset }: ChatInterfaceProps) {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.1 * i }}
-                                            onClick={(e) => handleSubmit(null as any, q)}
+                                            onClick={() => handleSubmit(null, q)}
                                             className="px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-full text-sm font-medium transition-colors"
                                         >
                                             {q}
@@ -248,7 +254,7 @@ export function ChatInterface({ filename, onReset }: ChatInterfaceProps) {
     )
 }
 
-function SourcesAccordion({ sources }: { sources: any[] }) {
+function SourcesAccordion({ sources }: { sources: Source[] }) {
     const [isOpen, setIsOpen] = React.useState(false)
 
     return (
@@ -278,7 +284,7 @@ function SourcesAccordion({ sources }: { sources: any[] }) {
                                     <span>Source Fragment {i + 1}</span>
                                     <span className="text-blue-500">Page {src.page}</span>
                                 </div>
-                                "{src.text}"
+                                &quot;{src.text}&quot;
                             </div>
                         ))}
                     </motion.div>

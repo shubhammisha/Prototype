@@ -20,7 +20,6 @@ const steps = [
 
 export function FileUpload({ onUploadComplete }: FileUploadProps) {
     const [uploadStatus, setUploadStatus] = React.useState<"idle" | "uploading" | "success" | "error">("idle")
-    const [errorMessage, setErrorMessage] = React.useState("")
     const [progress, setProgress] = React.useState(0)
     const [activeStep, setActiveStep] = React.useState(1)
     const [filename, setFilename] = React.useState("")
@@ -71,11 +70,11 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
                 onUploadComplete(file.name)
             }, 1000)
 
-        } catch (error: any) {
+        } catch (error) {
             clearInterval(stepTimer)
             clearInterval(progressTimer)
             setUploadStatus("error")
-            setErrorMessage(error.message || "Upload failed")
+            console.error(error)
         }
     }, [API_URL, onUploadComplete])
 
@@ -179,7 +178,6 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
                             {steps.map((step) => {
                                 const isCompleted = activeStep > step.id || uploadStatus === "success";
                                 const isCurrent = activeStep === step.id && uploadStatus !== "success";
-                                const isPending = activeStep < step.id;
 
                                 return (
                                     <div key={step.id} className="flex items-center gap-3 text-sm">
