@@ -55,6 +55,14 @@ class QdrantVectorStore:
                 )
             )
             logger.info(f"Created collection {self.collection_name} with size {vector_size}")
+            
+            # Create payload index for 'source' to enable/speed up filtering
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="source",
+                field_schema=models.PayloadSchemaType.KEYWORD
+            )
+            logger.info("Created keyword index for 'source' field")
 
     def upsert(self, embeddings: List[VectorEmbedding]):
         if not embeddings:
@@ -97,6 +105,9 @@ class QdrantVectorStore:
                 )
             if must_conditions:
                 query_filter = models.Filter(must=must_conditions)
+                logger.info(f"🔍 Searching with filter: {query_filter}")
+            else:
+                logger.info(f"⚠️ Filters provided {filters} but no conditions created.")
 
         results = self.client.query_points(
             collection_name=self.collection_name,
