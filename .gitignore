@@ -151,3 +151,4 @@ uploads/
 # OS specific
 .DS_Store
 frontend/.env.local
+!frontend/lib/
