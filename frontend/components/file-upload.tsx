@@ -91,43 +91,46 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
                 {uploadStatus === "idle" ? (
                     <motion.div
                         key="dropzone"
-                        {...getRootProps()}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className={cn(
-                            "relative group cursor-pointer flex flex-col items-center justify-center w-full h-80 rounded-3xl border border-dashed transition-all duration-300 bg-white/50 backdrop-blur-sm overflow-hidden",
-                            isDragActive ? "border-blue-500 bg-blue-50/50 scale-[1.02]" : "border-slate-300 hover:border-blue-400 hover:bg-slate-50/50",
-                        )}
                     >
-                        <input {...getInputProps()} />
-                        <div className={cn(
-                            "p-5 rounded-2xl bg-slate-50 text-slate-400 mb-6 transition-transform duration-300 shadow-sm",
-                            isDragActive && "scale-110 text-blue-500 bg-blue-50"
-                        )}>
-                            <UploadCloud size={40} />
-                        </div>
+                        <div
+                            {...getRootProps()}
+                            className={cn(
+                                "relative group cursor-pointer flex flex-col items-center justify-center w-full h-80 rounded-3xl border border-dashed transition-all duration-300 bg-white/50 backdrop-blur-sm overflow-hidden",
+                                isDragActive ? "border-blue-500 bg-blue-50/50 scale-[1.02]" : "border-slate-300 hover:border-blue-400 hover:bg-slate-50/50",
+                            )}
+                        >
+                            <input {...getInputProps()} />
+                            <div className={cn(
+                                "p-5 rounded-2xl bg-slate-50 text-slate-400 mb-6 transition-transform duration-300 shadow-sm",
+                                isDragActive && "scale-110 text-blue-500 bg-blue-50"
+                            )}>
+                                <UploadCloud size={40} />
+                            </div>
 
-                        <h3 className="text-lg font-semibold text-slate-800 mb-1">
-                            Drag & drop your document
-                        </h3>
-                        <p className="text-sm text-blue-500 font-medium mb-6 hover:underline">
-                            or browse files
-                        </p>
+                            <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                                Drag & drop your document
+                            </h3>
+                            <p className="text-sm text-blue-500 font-medium mb-6 hover:underline">
+                                or browse files
+                            </p>
 
-                        {/* Format Badges */}
-                        <div className="flex gap-2">
-                            {["PDF", "DOCX", "TXT", "Images"].map((fmt) => (
-                                <span key={fmt} className={cn(
-                                    "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider",
-                                    fmt === "PDF" && "bg-red-50 text-red-500",
-                                    fmt === "DOCX" && "bg-blue-50 text-blue-500",
-                                    fmt === "TXT" && "bg-slate-100 text-slate-500",
-                                    fmt === "Images" && "bg-green-50 text-green-500",
-                                )}>
-                                    {fmt}
-                                </span>
-                            ))}
+                            {/* Format Badges */}
+                            <div className="flex gap-2">
+                                {["PDF", "DOCX", "TXT", "Images"].map((fmt) => (
+                                    <span key={fmt} className={cn(
+                                        "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider",
+                                        fmt === "PDF" && "bg-red-50 text-red-500",
+                                        fmt === "DOCX" && "bg-blue-50 text-blue-500",
+                                        fmt === "TXT" && "bg-slate-100 text-slate-500",
+                                        fmt === "Images" && "bg-green-50 text-green-500",
+                                    )}>
+                                        {fmt}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
                 ) : (

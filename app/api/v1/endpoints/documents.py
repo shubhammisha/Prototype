@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, BackgroundTasks
 from app.schemas.document import DocumentResponse
-from app.services.document.loader import PDFLoader
+from app.services.document.loader import DocumentLoader
 from app.services.document.chunker import DocumentChunker
 from app.services.retrieval import RetrievalService
 from app.core.config import settings
@@ -17,7 +17,7 @@ def get_retrieval_service():
     return RetrievalService()
 
 def get_loader():
-    return PDFLoader()
+    return DocumentLoader()
 
 def get_chunker():
     return DocumentChunker()
@@ -26,7 +26,7 @@ def get_chunker():
 async def ingest_document(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    loader: PDFLoader = Depends(get_loader),
+    loader: DocumentLoader = Depends(get_loader),
     retrieval: RetrievalService = Depends(get_retrieval_service)
 ):
     try:
@@ -58,7 +58,7 @@ async def ingest_document(
         logger.error(f"Ingestion setup error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-async def process_upload_background(file_path: str, filename: str, loader: PDFLoader, retrieval: RetrievalService):
+async def process_upload_background(file_path: str, filename: str, loader: DocumentLoader, retrieval: RetrievalService):
     """
     Heavy lifting function run in background with ASYNC to prevent blocking.
     """

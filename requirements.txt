@@ -12,6 +12,7 @@ python-dotenv
 # Document Processing
 pymupdf
 fastembed
+python-docx
 
 # Vector Database & Embeddings
 qdrant-client
