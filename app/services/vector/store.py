@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Dict, Any
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from app.core.config import settings
@@ -82,11 +82,26 @@ class QdrantVectorStore:
             points=points
         )
 
-    def search(self, query_vector: List[float], limit: int = 5) -> List[VectorEmbedding]:
+    def search(self, query_vector: List[float], limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[VectorEmbedding]:
         # 'search' method deprecated/missing in this client version. Using query_points.
+        
+        query_filter = None
+        if filters:
+            must_conditions = []
+            for key, value in filters.items():
+                must_conditions.append(
+                    models.FieldCondition(
+                        key=key,
+                        match=models.MatchValue(value=value)
+                    )
+                )
+            if must_conditions:
+                query_filter = models.Filter(must=must_conditions)
+
         results = self.client.query_points(
             collection_name=self.collection_name,
             query=query_vector,
+            query_filter=query_filter,
             limit=limit
         ).points
         

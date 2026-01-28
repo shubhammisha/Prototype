@@ -45,7 +45,7 @@ class RAGService:
         
         return self.llm_service.generate(full_prompt)
 
-    def generate_response(self, query: str) -> dict:
+    def generate_response(self, query: str, filters: dict = None) -> dict:
         """
         Orchestrate the RAG flow: Retrieve -> Generate.
         Returns:
@@ -55,7 +55,7 @@ class RAGService:
             }
         """
         # 1. Retrieve relevant chunks
-        chunks = self.retrieval_service.search(query, limit=5)
+        chunks = self.retrieval_service.search(query, limit=5, filters=filters)
         
         # 2. Generate Answer
         answer = self.generate_answer(query, chunks)

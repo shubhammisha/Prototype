@@ -16,8 +16,8 @@ async def chat(
     service: RAGService = Depends(get_rag_service)
 ):
     try:
-        logger.info(f"Chat request: {request.query}")
-        result = service.generate_response(request.query)
+        logger.info(f"Chat request: {request.query} with filters: {request.filters}")
+        result = service.generate_response(request.query, filters=request.filters)
         
         answer = result["answer"]
         chunks = result["sources"]

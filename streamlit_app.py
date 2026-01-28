@@ -89,6 +89,12 @@ if prompt := st.chat_input("Ask a question based on your documents..."):
         with st.spinner("Analysing documents..."):
             try:
                 payload = {"query": prompt}
+                
+                # Add source filter if a document is loaded
+                if st.session_state.get("last_uploaded"):
+                    payload["filters"] = {"source": st.session_state.last_uploaded}
+                    st.toast(f"Searching in: {st.session_state.last_uploaded}")
+
                 resp = requests.post(f"{API_URL}/chat/", json=payload)
                 
                 if resp.status_code == 200:

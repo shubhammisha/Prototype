@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class ChatRequest(BaseModel):
     query: str
     history: Optional[List[dict]] = None
+    filters: Optional[dict] = None
 
 class SourceSnippet(BaseModel):
     text: str

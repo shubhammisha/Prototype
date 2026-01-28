@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 from app.services.vector.embeddings import BaseEmbeddingService, get_embedding_service
 from app.services.vector.store import QdrantVectorStore
 from app.services.vector.store import QdrantVectorStore
@@ -44,7 +44,7 @@ class RetrievalService:
             
             self.vector_store.upsert(embeddings)
             
-    def search(self, query: str, limit: int = 5) -> List[VectorEmbedding]:
+    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[VectorEmbedding]:
         """
         Search for relevant documents.
         """
@@ -54,7 +54,8 @@ class RetrievalService:
         # 2. Search vector store
         results = self.vector_store.search(
             query_vector=query_embedding_obj.vector,
-            limit=limit
+            limit=limit,
+            filters=filters
         )
         
         return results
