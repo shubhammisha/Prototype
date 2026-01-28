@@ -56,13 +56,18 @@ class QdrantVectorStore:
             )
             logger.info(f"Created collection {self.collection_name} with size {vector_size}")
             
-            # Create payload index for 'source' to enable/speed up filtering
+        # Ensure payload index exists (safe to call multiple times or catch error)
+        try:
             self.client.create_payload_index(
                 collection_name=self.collection_name,
                 field_name="source",
                 field_schema=models.PayloadSchemaType.KEYWORD
             )
-            logger.info("Created keyword index for 'source' field")
+            logger.info("Verified/Created keyword index for 'source' field")
+        except Exception as e:
+            # Depending on client version, this might raise if exists or other issues.
+            # Usually idempotent, but safelisting just in case.
+            logger.info(f"Index creation note: {e}")
 
     def upsert(self, embeddings: List[VectorEmbedding]):
         if not embeddings:
