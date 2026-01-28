@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import { cn } from "../../lib/utils"
 
 // Since I didn't install cva/radix, I'll use a simpler implementation for now to avoid installing more deps if possible, 
 // OR I should just install them. Standard shadcn uses them. 

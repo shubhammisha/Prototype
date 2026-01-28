@@ -4,8 +4,8 @@ import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Send, FileText, ChevronDown, ChevronUp, RefreshCw, Upload, Sparkles, User, Bot } from "lucide-react"
 import axios from "axios"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "./ui/button"
+import { cn } from "../lib/utils"
 
 interface ChatInterfaceProps {
     filename: string

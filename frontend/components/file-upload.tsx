@@ -5,8 +5,8 @@ import { useDropzone } from "react-dropzone"
 import { motion, AnimatePresence } from "framer-motion"
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
 import axios from "axios"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "./ui/button"
+import { cn } from "../lib/utils"
 
 interface FileUploadProps {
     onUploadComplete: (filename: string) => void
